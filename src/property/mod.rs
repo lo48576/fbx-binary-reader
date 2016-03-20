@@ -56,6 +56,25 @@ pub struct Iter<'a> {
     rest_properties: usize,
 }
 
+macro_rules! implement_iter_read {
+    ($t:ty, $read_fun:ident, $size:expr) => (
+        impl<'a> Iter<'a> {
+            fn $read_fun(&mut self) -> Option<$t> {
+                // TODO: Get size from `$t` at compile time.
+                //const SIZE: usize = ::std::mem::size_of::<$t>(); // size_of() is not `const fn`.
+                const SIZE: usize = $size;
+                if self.buffer.len() < SIZE {
+                    error!("Property data is too short");
+                    self.rest_properties = 0;
+                    return None;
+                }
+                let val = self.buffer.$read_fun::<LittleEndian>().unwrap();
+                Some(val)
+            }
+        }
+    )
+}
+
 impl<'a> Iter<'a> {
     fn read_u8(&mut self) -> Option<u8> {
         const SIZE: usize = 1;
@@ -67,78 +86,25 @@ impl<'a> Iter<'a> {
         let val = self.buffer.read_u8().unwrap();
         Some(val)
     }
-
-    fn read_u32(&mut self) -> Option<u32> {
-        const SIZE: usize = 4;
-        if self.buffer.len() < SIZE {
-            error!("Property data is too short");
-            self.rest_properties = 0;
-            return None;
-        }
-        let val = self.buffer.read_u32::<LittleEndian>().unwrap();
-        Some(val)
-    }
-
-    fn read_i16(&mut self) -> Option<i16> {
-        const SIZE: usize = 2;
-        if self.buffer.len() < SIZE {
-            error!("Property data is too short");
-            self.rest_properties = 0;
-            return None;
-        }
-        let val = self.buffer.read_i16::<LittleEndian>().unwrap();
-        Some(val)
-    }
-
-    fn read_i32(&mut self) -> Option<i32> {
-        const SIZE: usize = 4;
-        if self.buffer.len() < SIZE {
-            error!("Property data is too short");
-            self.rest_properties = 0;
-            return None;
-        }
-        let val = self.buffer.read_i32::<LittleEndian>().unwrap();
-        Some(val)
-    }
-
-    fn read_i64(&mut self) -> Option<i64> {
-        const SIZE: usize = 8;
-        if self.buffer.len() < SIZE {
-            error!("Property data is too short");
-            self.rest_properties = 0;
-            return None;
-        }
-        let val = self.buffer.read_i64::<LittleEndian>().unwrap();
-        Some(val)
-    }
-
-    fn read_f32(&mut self) -> Option<f32> {
-        const SIZE: usize = 4;
-        if self.buffer.len() < SIZE {
-            error!("Property data is too short");
-            self.rest_properties = 0;
-            return None;
-        }
-        let val = self.buffer.read_f32::<LittleEndian>().unwrap();
-        Some(val)
-    }
-
-    fn read_f64(&mut self) -> Option<f64> {
-        const SIZE: usize = 8;
-        if self.buffer.len() < SIZE {
-            error!("Property data is too short");
-            self.rest_properties = 0;
-            return None;
-        }
-        let val = self.buffer.read_f64::<LittleEndian>().unwrap();
-        Some(val)
-    }
 }
+implement_iter_read!(u32, read_u32, 4);
+implement_iter_read!(i16, read_i16, 2);
+implement_iter_read!(i32, read_i32, 4);
+implement_iter_read!(i64, read_i64, 8);
+implement_iter_read!(f32, read_f32, 4);
+implement_iter_read!(f64, read_f64, 8);
 
 impl<'a> Iterator for Iter<'a> {
     type Item = Property<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        macro_rules! read_primitive_prop {
+            ($read_fun:ident, $variant:ident) => ({
+                let val = try_opt!(self.$read_fun());
+                self.rest_properties -= 1;
+                Some(Property::$variant(val))
+            })
+        }
         if self.rest_properties == 0 {
             return None;
         }
@@ -154,35 +120,15 @@ impl<'a> Iterator for Iter<'a> {
                 Some(Property::Bool(val & 1 == 1))
             },
             // 2-byte signed integer.
-            b'Y' => {
-                let val = try_opt!(self.read_i16());
-                self.rest_properties -= 1;
-                Some(Property::I16(val))
-            },
+            b'Y' => read_primitive_prop!(read_i16, I16),
             // 4-byte signed integer.
-            b'I' => {
-                let val = try_opt!(self.read_i32());
-                self.rest_properties -= 1;
-                Some(Property::I32(val))
-            },
+            b'I' => read_primitive_prop!(read_i32, I32),
             // 8-byte signed integer.
-            b'L' => {
-                let val = try_opt!(self.read_i64());
-                self.rest_properties -= 1;
-                Some(Property::I64(val))
-            },
+            b'L' => read_primitive_prop!(read_i64, I64),
             // 4-byte single-precision IEEE 754 floating-point number.
-            b'F' => {
-                let val = try_opt!(self.read_f32());
-                self.rest_properties -= 1;
-                Some(Property::F32(val))
-            },
+            b'F' => read_primitive_prop!(read_f32, F32),
             // 8-byte single-precision IEEE 754 floating-point number.
-            b'D' => {
-                let val = try_opt!(self.read_f64());
-                self.rest_properties -= 1;
-                Some(Property::F64(val))
-            },
+            b'D' => read_primitive_prop!(read_f64, F64),
             // String.
             b'S' => {
                 let length = try_opt!(self.read_u32()) as usize;
@@ -222,16 +168,14 @@ impl<'a> Iterator for Iter<'a> {
                     self.rest_properties = 0;
                     return None;
                 };
-                let buffer = if self.buffer.len() < array_header.compressed_length {
+                if self.buffer.len() < array_header.compressed_length {
                     error!("Property data is too short");
                     self.rest_properties = 0;
                     return None;
-                } else {
-                    let bufs = self.buffer.split_at(array_header.compressed_length);
-                    self.buffer = bufs.1;
-                    bufs.0
-                };
-                if let Some(val) = read_property_array(buffer, &array_header, type_code) {
+                }
+                let buf = &self.buffer[0..array_header.compressed_length];
+                self.buffer = &self.buffer[array_header.compressed_length..];
+                if let Some(val) = read_property_array(buf, &array_header, type_code) {
                     self.rest_properties -= 1;
                     Some(val)
                 } else {
