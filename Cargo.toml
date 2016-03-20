@@ -5,6 +5,7 @@ authors = ["Takuma Yoshioka <nu11p0.6477@gmail.com>"]
 
 [dependencies]
 byteorder = "^0.5"
+flate2 = "^0.2"
 log = "^0.3"
 
 [dev-dependencies]

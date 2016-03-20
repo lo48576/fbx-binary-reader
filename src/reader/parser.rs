@@ -4,7 +4,6 @@ use std::io::Read;
 use error::{Error, Result};
 use event::{FbxEvent, FbxHeaderInfo};
 use property::DelayedProperties;
-use reader::ParserConfig;
 
 
 #[macro_use]
@@ -97,7 +96,6 @@ enum State {
 }
 
 pub struct Parser {
-    config: ParserConfig,
     state: State,
     version: i32,
     pos: usize,
@@ -106,9 +104,8 @@ pub struct Parser {
 
 impl Parser {
     /// Constructs a parser.
-    pub fn new(config: ParserConfig) -> Self {
+    pub fn new() -> Self {
         Parser {
-            config: config,
             state: State::ReadingMagic,
             version: ::std::i32::MIN,
             pos: 0,
@@ -218,7 +215,7 @@ impl Parser {
         let properties = {
             let mut properties_raw = vec![0; node_record_header.property_byte_len as usize];
             try_read_exact!(reader, self.pos, &mut properties_raw);
-            DelayedProperties::from_vec_u8(properties_raw, self.version, &self.config, node_record_header.num_properties as usize)
+            DelayedProperties::from_vec_u8(properties_raw, self.version, node_record_header.num_properties as usize)
         };
 
         Ok(FbxEvent::StartNode {

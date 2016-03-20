@@ -18,15 +18,7 @@ impl<R: Read> EventReader<R> {
     pub fn new(source: R) -> Self {
         EventReader {
             source: source,
-            parser: parser::Parser::new(ParserConfig::new()),
-        }
-    }
-
-    /// Creates a new reader with provided configuration, consuming the given stream.
-    pub fn new_with_config(source: R, config: ParserConfig) -> Self {
-        EventReader {
-            source: source,
-            parser: parser::Parser::new(config),
+            parser: parser::Parser::new(),
         }
     }
 
@@ -81,20 +73,5 @@ impl<R: Read> Iterator for Events<R> {
             }
             Some(ev)
         }
-    }
-}
-
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
-pub struct ParserConfig;
-
-impl ParserConfig {
-    /// Creates a new config with default options.
-    pub fn new() -> Self {
-        Default::default()
-    }
-
-    /// Creates an FBX reader with this configuration.
-    pub fn create_reader<R: Read>(self, source: R) -> EventReader<R> {
-        EventReader::new_with_config(source, self)
     }
 }

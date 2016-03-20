@@ -10,12 +10,13 @@
 //! reader or FBX writer.
 
 extern crate byteorder;
+extern crate flate2;
 #[macro_use]
 extern crate log;
 
 pub use error::{Error, Result};
 pub use event::{FbxEvent, FbxHeaderInfo};
-pub use property::{DelayedProperties};
+pub use property::{DelayedProperties, Iter};
 pub use reader::{Events, EventReader};
 
 pub mod error;
