@@ -256,6 +256,159 @@ pub enum Property<'a> {
     VecF64(Vec<f64>),
 }
 
+macro_rules! implement_property_value_getter {
+    (primitive, $t:ty, $method_name:ident, $variant:ident) => (
+        impl<'a> Property<'a> {
+            /// Get property value without consuming self.
+            ///
+            /// Tries to get property value of specific type without type conversion.
+            pub fn $method_name(&self) -> Option<$t> {
+                match *self {
+                    Property::$variant(v) => Some(v),
+                    _ => None,
+                }
+            }
+        }
+    );
+    (vec, $t:ty, $method_name:ident, $variant:ident) => (
+        impl<'a> Property<'a> {
+            /// Get property value without consuming self.
+            ///
+            /// Tries to get property value of specific type without type conversion.
+            pub fn $method_name(&self) -> Option<&Vec<$t>> {
+                match *self {
+                    Property::$variant(ref v) => Some(v),
+                    _ => None,
+                }
+            }
+        }
+    );
+}
+
+implement_property_value_getter!(primitive, bool, get_bool, Bool);
+implement_property_value_getter!(primitive, i16, get_i16, I16);
+implement_property_value_getter!(primitive, i32, get_i32, I32);
+implement_property_value_getter!(primitive, i64, get_i64, I64);
+implement_property_value_getter!(primitive, f32, get_f32, F32);
+implement_property_value_getter!(primitive, f64, get_f64, F64);
+
+implement_property_value_getter!(vec, bool, get_vec_bool, VecBool);
+implement_property_value_getter!(vec, i32, get_vec_i32, VecI32);
+implement_property_value_getter!(vec, i64, get_vec_i64, VecI64);
+implement_property_value_getter!(vec, f32, get_vec_f32, VecF32);
+implement_property_value_getter!(vec, f64, get_vec_f64, VecF64);
+
+implement_property_value_getter!(primitive, &'a [u8], get_binary, Binary);
+implement_property_value_getter!(primitive, &'a str, get_string, String);
+
+macro_rules! implement_property_value_into {
+    ($t:ty, $method_name:ident, $variant:ident) => (
+        impl<'a> Property<'a> {
+            /// Get property value consuming self.
+            ///
+            /// Tries to get property value of specific type without type conversion.
+            pub fn $method_name(self) -> Result<$t, Self> {
+                match self {
+                    Property::$variant(v) => Ok(v),
+                    s => Err(s),
+                }
+            }
+        }
+    );
+}
+
+implement_property_value_into!(bool, into_bool, Bool);
+implement_property_value_into!(i16, into_i16, I16);
+implement_property_value_into!(i32, into_i32, I32);
+implement_property_value_into!(i64, into_i64, I64);
+implement_property_value_into!(f32, into_f32, F32);
+implement_property_value_into!(f64, into_f64, F64);
+implement_property_value_into!(Vec<bool>, into_vec_bool, VecBool);
+implement_property_value_into!(Vec<i32>, into_vec_i32, VecI32);
+implement_property_value_into!(Vec<i64>, into_vec_i64, VecI64);
+implement_property_value_into!(Vec<f32>, into_vec_f32, VecF32);
+implement_property_value_into!(Vec<f64>, into_vec_f64, VecF64);
+
+impl<'a> Property<'a> {
+    /// Safe conversion.
+    ///
+    /// Tries to convert property value into specific type without data loss.
+    pub fn as_i32(&self) -> Option<i32> {
+        match *self {
+            Property::I16(v) => Some(v as i32),
+            Property::I32(v) => Some(v),
+            _ => None,
+        }
+    }
+
+    /// Safe conversion.
+    ///
+    /// Tries to convert property value into specific type without data loss.
+    pub fn as_i64(&self) -> Option<i64> {
+        match *self {
+            Property::I16(v) => Some(v as i64),
+            Property::I32(v) => Some(v as i64),
+            Property::I64(v) => Some(v),
+            _ => None,
+        }
+    }
+
+    /// Safe conversion.
+    ///
+    /// Tries to convert property value into specific type.
+    pub fn as_f32(&self) -> Option<f32> {
+        match *self {
+            Property::F32(v) => Some(v),
+            Property::F64(v) => Some(v as f32),
+            _ => None,
+        }
+    }
+
+    /// Safe conversion.
+    ///
+    /// Tries to convert property value into specific type.
+    pub fn as_f64(&self) -> Option<f64> {
+        match *self {
+            Property::F32(v) => Some(v as f64),
+            Property::F64(v) => Some(v),
+            _ => None,
+        }
+    }
+
+    /// Safe conversion consuming self.
+    ///
+    /// Tries to convert property value into specific type without data loss.
+    pub fn as_vec_i64(self) -> Option<Vec<i64>> {
+        match self {
+            Property::VecI32(v) => Some(v.into_iter().map(|v| v as i64).collect::<Vec<_>>()),
+            Property::VecI64(v) => Some(v),
+            _ => None,
+        }
+    }
+
+    /// Safe conversion consuming self.
+    ///
+    /// Tries to convert property value into specific type.
+    pub fn as_vec_f32(self) -> Option<Vec<f32>> {
+        match self {
+            Property::VecF32(v) => Some(v),
+            Property::VecF64(v) => Some(v.into_iter().map(|v| v as f32).collect::<Vec<_>>()),
+            _ => None,
+        }
+    }
+
+    /// Safe conversion consuming self.
+    ///
+    /// Tries to convert property value into specific type.
+    pub fn as_vec_f64(self) -> Option<Vec<f64>> {
+        match self {
+            Property::VecF32(v) => Some(v.into_iter().map(|v| v as f64).collect::<Vec<_>>()),
+            Property::VecF64(v) => Some(v),
+            _ => None,
+        }
+    }
+}
+
 fn read_property_array<'a>(mut buffer: &'a [u8], header: &ArrayHeader, type_code: u8) -> Option<Property<'static>> {
     match header.encoding {
         // 0: raw.
