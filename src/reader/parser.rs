@@ -3,7 +3,7 @@
 use std::io::Read;
 use error::{Error, Result};
 use event::{FbxEvent, FbxHeaderInfo};
-use property::DelayedPropertiesIter;
+use property::DelayedProperties;
 use reader::ParserConfig;
 
 
@@ -218,7 +218,7 @@ impl Parser {
         let properties = {
             let mut properties_raw = vec![0; node_record_header.property_byte_len as usize];
             try_read_exact!(reader, self.pos, &mut properties_raw);
-            DelayedPropertiesIter::from_vec_u8(properties_raw, self.version, &self.config, node_record_header.num_properties as usize)
+            DelayedProperties::from_vec_u8(properties_raw, self.version, &self.config, node_record_header.num_properties as usize)
         };
 
         Ok(FbxEvent::StartNode {

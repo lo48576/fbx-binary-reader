@@ -29,8 +29,11 @@ fn main() {
     let mut depth = 0;
     for e in parser {
         match e {
-            Ok(ref e@FbxEvent::StartNode { .. }) => {
-                println!("{}{:?}", indent(depth), e);
+            Ok(FbxEvent::StartNode { name, properties }) => {
+                println!("{}StartNode {{ name: {:?}, properties: {:?} }}", indent(depth), name, properties);
+                for (i, p) in properties.iter().enumerate() {
+                    println!("{}Property[{}]={:?},", indent(depth + 1), i, p);
+                }
                 depth += 1;
             },
             Ok(ref e@FbxEvent::EndNode) => {

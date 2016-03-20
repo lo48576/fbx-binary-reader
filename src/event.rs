@@ -1,6 +1,6 @@
 //! Contains a type for reader event.
 
-use property::DelayedPropertiesIter;
+use property::DelayedProperties;
 
 
 #[derive(Debug, Clone)]
@@ -26,7 +26,7 @@ pub enum FbxEvent {
         /// Node name.
         name: String,
         /// Node properties.
-        properties: DelayedPropertiesIter,
+        properties: DelayedProperties,
     },
     /// Denotes end of a node.
     EndNode,
