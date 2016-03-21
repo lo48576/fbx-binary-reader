@@ -1,7 +1,7 @@
 = fbx-binary-reader, a low-level FBX binary parser for Rust
 
 fbx-binary-reader is an FBX library for Rust programming language.
-It is similar to fbx_direct, but fbx-binary-reader has only FBX binary parser, and faster than fbx_direct.
+It is similar to fbx_direct, but fbx-binary-reader has only FBX binary parser, and faster than link:https://github.com/l1048576/fbx_direct[fbx_direct].
 
 This library supports FBX 7.4 or later.
 
