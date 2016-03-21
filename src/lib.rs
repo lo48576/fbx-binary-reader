@@ -16,7 +16,7 @@ extern crate log;
 
 pub use error::{Error, Result};
 pub use event::{FbxEvent, FbxHeaderInfo};
-pub use property::{DelayedProperties, PropertiesIter};
+pub use property::{DelayedProperties, Property, PropertiesIter};
 pub use reader::{Events, EventReader};
 
 pub mod error;
