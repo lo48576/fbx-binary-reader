@@ -30,8 +30,8 @@ impl DelayedProperties {
         }
     }
 
-    pub fn iter(&self) -> Iter {
-        Iter {
+    pub fn iter(&self) -> PropertiesIter {
+        PropertiesIter {
             buffer: &self.buffer[..],
             rest_properties: self.num_properties,
         }
@@ -51,14 +51,14 @@ impl fmt::Debug for DelayedProperties {
     }
 }
 
-pub struct Iter<'a> {
+pub struct PropertiesIter<'a> {
     buffer: &'a [u8],
     rest_properties: usize,
 }
 
 macro_rules! implement_iter_read {
     ($t:ty, $read_fun:ident, $size:expr) => (
-        impl<'a> Iter<'a> {
+        impl<'a> PropertiesIter<'a> {
             fn $read_fun(&mut self) -> Option<$t> {
                 // TODO: Get size from `$t` at compile time.
                 //const SIZE: usize = ::std::mem::size_of::<$t>(); // size_of() is not `const fn`.
@@ -75,7 +75,7 @@ macro_rules! implement_iter_read {
     )
 }
 
-impl<'a> Iter<'a> {
+impl<'a> PropertiesIter<'a> {
     fn read_u8(&mut self) -> Option<u8> {
         const SIZE: usize = 1;
         if self.buffer.len() < SIZE {
@@ -94,7 +94,7 @@ implement_iter_read!(i64, read_i64, 8);
 implement_iter_read!(f32, read_f32, 4);
 implement_iter_read!(f64, read_f64, 8);
 
-impl<'a> Iterator for Iter<'a> {
+impl<'a> Iterator for PropertiesIter<'a> {
     type Item = Property<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
