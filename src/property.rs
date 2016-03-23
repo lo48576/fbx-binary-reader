@@ -140,11 +140,11 @@ impl<'a> Iterator for PropertiesIter<'a> {
                 let buf = &self.buffer[0..length];
                 self.buffer = &self.buffer[length..];
                 self.rest_properties -= 1;
-                let strbuf = try_opt!(str::from_utf8(buf).map_err(|err| {
-                    error!("Failed to decode a property of string type: {}", err);
-                    self.rest_properties = 0;
-                }).ok());
-                Some(Property::String(strbuf))
+                let str_or_raw = str::from_utf8(buf).map_err(|err| {
+                    warn!("Property value of string type is invalid as UTF-8 sequence: {}", err);
+                    buf
+                });
+                Some(Property::String(str_or_raw))
             },
             // Raw binary.
             b'R' => {
@@ -241,7 +241,7 @@ pub enum Property<'a> {
     /// 8-byte single-precision IEEE 754 floating-point number.
     F64(f64),
     /// String.
-    String(&'a str),
+    String(Result<&'a str, &'a [u8]>),
     /// Raw binary.
     Binary(&'a [u8]),
     /// Array of boolean.
@@ -299,7 +299,19 @@ implement_property_value_getter!(vec, f32, get_vec_f32, VecF32);
 implement_property_value_getter!(vec, f64, get_vec_f64, VecF64);
 
 implement_property_value_getter!(primitive, &'a [u8], get_binary, Binary);
-implement_property_value_getter!(primitive, &'a str, get_string, String);
+implement_property_value_getter!(primitive, Result<&'a str, &'a [u8]>, get_string_or_raw, String);
+
+impl<'a> Property<'a> {
+    /// Get property value without consuming self.
+    ///
+    /// Tries to get property value of specific type without type conversion.
+    pub fn get_string(&self) -> Option<&'a str> {
+        match *self {
+            Property::String(Ok(ref v)) => Some(v),
+            _ => None,
+        }
+    }
+}
 
 macro_rules! implement_property_value_into {
     ($t:ty, $method_name:ident, $variant:ident) => (
