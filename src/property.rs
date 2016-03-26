@@ -380,21 +380,18 @@ macro_rules! implement_getter_extract {
     );
 }
 
-implement_getter_extract!(primitive, bool, get_bool, Bool);
-implement_getter_extract!(primitive, i16, get_i16, I16);
-implement_getter_extract!(primitive, i32, get_i32, I32);
-implement_getter_extract!(primitive, i64, get_i64, I64);
-implement_getter_extract!(primitive, f32, get_f32, F32);
-implement_getter_extract!(primitive, f64, get_f64, F64);
+implement_getter_extract!(primitive, bool, extract_bool, Bool);
+implement_getter_extract!(primitive, i16, extract_i16, I16);
+implement_getter_extract!(primitive, i32, extract_i32, I32);
+implement_getter_extract!(primitive, i64, extract_i64, I64);
+implement_getter_extract!(primitive, f32, extract_f32, F32);
+implement_getter_extract!(primitive, f64, extract_f64, F64);
 
-implement_getter_extract!(vec, bool, get_vec_bool, VecBool);
-implement_getter_extract!(vec, i32, get_vec_i32, VecI32);
-implement_getter_extract!(vec, i64, get_vec_i64, VecI64);
-implement_getter_extract!(vec, f32, get_vec_f32, VecF32);
-implement_getter_extract!(vec, f64, get_vec_f64, VecF64);
-
-implement_getter_extract!(primitive, &'a [u8], get_binary, Binary);
-implement_getter_extract!(primitive, Result<&'a str, &'a [u8]>, get_string_or_raw, String);
+implement_getter_extract!(vec, bool, extract_vec_bool, VecBool);
+implement_getter_extract!(vec, i32, extract_vec_i32, VecI32);
+implement_getter_extract!(vec, i64, extract_vec_i64, VecI64);
+implement_getter_extract!(vec, f32, extract_vec_f32, VecF32);
+implement_getter_extract!(vec, f64, extract_vec_f64, VecF64);
 
 macro_rules! implement_property_value_into {
     ($t:ty, $method_name:ident, $variant:ident) => (
