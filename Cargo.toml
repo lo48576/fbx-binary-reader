@@ -1,0 +1,20 @@
+[package]
+name = "fbx-binary-reader"
+version = "0.1.0"
+authors = ["Takuma Yoshioka <nu11p0.6477@gmail.com>"]
+
+documentation = "http://l1048576.github.io/fbx-binary-reader/doc/fbx_binary_reader/index.html"
+homepage = "https://github.com/l1048576/fbx-binary-reader"
+repository = "https://github.com/l1048576/fbx-binary-reader"
+readme = "README.adoc"
+keywords = ["fbx", "graphics", "3d", "model"]
+license = "MIT OR Apache-2.0"
+description = "Low-level FBX library"
+
+[dependencies]
+byteorder = "^0.5"
+flate2 = "^0.2"
+log = "^0.3"
+
+[dev-dependencies]
+env_logger = "^0.3"
