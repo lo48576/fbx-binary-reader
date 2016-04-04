@@ -6,7 +6,7 @@ authors = ["Takuma Yoshioka <nu11p0.6477@gmail.com>"]
 readme = "README.adoc"
 keywords = ["fbx", "graphics", "3d", "model"]
 license = "MIT OR Apache-2.0"
-description = "High-level FBX library"
+description = "Low-level FBX library"
 
 [dependencies]
 byteorder = "^0.5"
