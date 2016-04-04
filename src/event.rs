@@ -3,8 +3,12 @@
 use property::DelayedProperties;
 
 
+/// Information in FBX file header.
 #[derive(Debug, Clone)]
 pub struct FbxHeaderInfo {
+    /// FBX version.
+    ///
+    /// For FBX x.y, the value will be _x * 1000 + y * 100_.
     pub version: i32,
 }
 

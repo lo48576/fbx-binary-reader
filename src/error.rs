@@ -9,6 +9,9 @@ use std::fmt;
 
 pub type Result<T> = ::std::result::Result<T, Error>;
 
+/// Critical parse error.
+///
+/// This error will be emitted when parsing cannot be continued.
 #[derive(Debug)]
 pub enum Error {
     /// Conversion from array of u8 to String failed.

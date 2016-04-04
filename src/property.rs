@@ -17,13 +17,23 @@ macro_rules! try_opt {
 }
 
 
+/// Node properties with minimal parsing.
 #[derive(Clone)]
 pub struct DelayedProperties {
+    /// Node properties which are not yet parsed.
     buffer: Vec<u8>,
+    /// Number of properties.
+    ///
+    /// The value is taken from the header of the node properties, and it might be wrong
+    /// (especially, when parse error happened at node properties, following node properties are
+    /// ignored and you can get less number of node properties than `num_properties`).
     num_properties: usize,
 }
 
 impl DelayedProperties {
+    /// Create `DelayedProperties` object from given binary and metadata.
+    ///
+    /// (This is for internal use.)
     pub fn from_vec_u8(vec: Vec<u8>, _version: i32, num_properties: usize) -> Self {
         DelayedProperties {
             buffer: vec,
@@ -52,8 +62,11 @@ impl fmt::Debug for DelayedProperties {
     }
 }
 
+/// Iterator on `DelayedProperties`.
 pub struct PropertiesIter<'a> {
+    /// Reference to the raw node properties binary.
     buffer: &'a [u8],
+    /// Maximum number of rest properties.
     rest_properties: usize,
 }
 
