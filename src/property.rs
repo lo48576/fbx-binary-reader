@@ -19,8 +19,8 @@ macro_rules! try_opt {
 
 #[derive(Clone)]
 pub struct DelayedProperties {
-    pub buffer: Vec<u8>,
-    pub num_properties: usize,
+    buffer: Vec<u8>,
+    num_properties: usize,
 }
 
 impl DelayedProperties {
@@ -209,7 +209,7 @@ struct ArrayHeader {
 
 impl ArrayHeader {
     /// Constructs `ArrayValueHeader` from the given binary.
-    pub fn from_binary(source: &[u8]) -> Option<(Self, usize)> {
+    fn from_binary(source: &[u8]) -> Option<(Self, usize)> {
         const LENGTH: usize = 4 * 3;
         let mut buffer = source;
         if buffer.len() < LENGTH {
